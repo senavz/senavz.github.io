@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corporate Performance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Open Sans',sans-serif;background:#F9F9F9;color:#222;font-size:14px}
+h1,h2,h3,.stat-num,.tab-label{font-family:'Montserrat',sans-serif;font-weight:700}
+.header{background:#fff;border-bottom:1px solid #E5E7EB;padding:14px 24px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:18px;color:#1F2937}
+.header-dot{width:10px;height:10px;border-radius:50%;background:#4F46E5}
+.tabs{display:flex;gap:0;border-bottom:2px solid #E5E7EB;background:#fff;padding:0 24px;position:sticky;top:0;z-index:10}
+.tab{padding:14px 20px;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;color:#6B7280;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab.active{color:#4F46E5;border-bottom-color:#4F46E5}
+.tab:hover:not(.active){color:#374151;border-bottom-color:#D1D5DB}
+.page{display:none;padding:24px}.page.active{display:block}
+.card{background:#fff;border-radius:12px;border:1px solid #E5E7EB;padding:20px}
+.card-red{border-left:4px solid #EF4444;border-radius:0 12px 12px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;text-align:center}
+.stat-num{font-size:28px;color:#4F46E5;line-height:1}
+.stat-label{font-size:11px;color:#6B7280;margin-top:4px;line-height:1.3}
+.alert-banner{background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:12px 16px;margin-bottom:20px;color:#92400E;font-size:13px;display:flex;align-items:center;gap:8px}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:#F97316;flex-shrink:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pie-section h3{font-size:14px;margin-bottom:4px;font-family:'Montserrat',sans-serif}
+.pie-label{display:flex;justify-content:space-between;font-size:12px;color:#6B7280;margin-bottom:4px;margin-top:10px}
+.bar-bg{background:#F3F4F6;border-radius:4px;height:8px;overflow:hidden}
+.bar-fill{height:8px;border-radius:4px;transition:width .5s}
+.coaching{background:#EEF2FF;border-radius:8px;padding:10px 12px;margin-top:14px;font-size:12px;color:#4338CA;border-left:3px solid #4F46E5}
+.q-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.q-card{border:1px solid #E5E7EB;border-radius:8px;padding:14px;text-align:center;background:#FAFAFA}
+.q-num{font-size:22px;font-family:'Montserrat',sans-serif;font-weight:700;color:#4F46E5}
+.q-label{font-size:11px;color:#6B7280;margin-top:2px}
+.q-bar-bg{background:#E5E7EB;border-radius:3px;height:5px;margin-top:8px;overflow:hidden}
+.q-bar-fill{height:5px;border-radius:3px;background:#4F46E5}
+table{width:100%;border-collapse:collapse}
+thead tr{background:#1F2937}
+thead th{color:#F9FAFB;padding:10px 12px;text-align:left;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700}
+tbody tr{border-bottom:1px solid #F3F4F6;cursor:pointer;transition:background .1s}
+tbody tr:hover{background:#F0F4FF}
+td{padding:9px 12px;font-size:13px;vertical-align:middle}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.b-done{background:#DCFCE7;color:#166534}
+.b-progress{background:#DBEAFE;color:#1D4ED8}
+.b-blocked{background:#FEE2E2;color:#991B1B}
+.b-notstarted{background:#F3F4F6;color:#6B7280}
+.b-high{background:#FEE2E2;color:#991B1B}
+.b-medium{background:#FEF3C7;color:#92400E}
+.b-low{background:#F3F4F6;color:#6B7280}
+.b-p{background:#EDE9FE;color:#5B21B6}
+.b-i{background:#E0F2FE;color:#0369A1}
+.b-e{background:#DCFCE7;color:#166534}
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filters select{padding:6px 10px;border:1px solid #D1D5DB;border-radius:6px;font-family:'Open Sans',sans-serif;font-size:13px;background:#fff;color:#374151}
+.add-btn{margin-left:auto;padding:8px 16px;background:#4F46E5;color:#fff;border:none;border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;cursor:pointer}
+.add-btn:hover{background:#4338CA}
+.section-head{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:#1F2937;margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid #E5E7EB}
+.brag-card{background:#1E1E2E;border-radius:12px;padding:20px;margin-bottom:14px;color:#E2E8F0}
+.brag-title{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
+.brag-impact{background:#2D2D3F;border-radius:8px;padding:12px;margin:10px 0;border-left:3px solid #4F46E5;font-size:13px;color:#CBD5E1}
+.brag-quote{font-style:italic;color:#94A3B8;font-size:12px;margin-top:8px}
+.brag-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.brag-tag{background:#2D3748;color:#A5B4FC;border-radius:6px;padding:3px 8px;font-size:11px}
+.brag-warn{background:#431407;border:1px solid #EA580C;border-radius:8px;padding:10px 12px;margin-top:10px;color:#FED7AA;font-size:12px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:680px;padding:24px;position:relative;margin-top:10px;margin-bottom:10px}
+.modal h2{font-family:'Montserrat',sans-serif;font-size:18px;margin-bottom:20px;color:#1F2937}
+.modal-section{margin-bottom:18px}
+.modal-section-label{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;margin-bottom:8px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field-row.full{grid-template-columns:1fr}
+label.field-label{font-size:12px;color:#6B7280;display:block;margin-bottom:4px}
+input[type=text],input[type=url],textarea,select.modal-select{width:100%;padding:8px 10px;border:1px solid #D1D5DB;border-radius:6px;font-family:'Open Sans',sans-serif;font-size:13px;color:#374151;background:#fff}
+textarea{min-height:70px;resize:vertical}
+.skill-btn{padding:5px 11px;border:1px solid #D1D5DB;border-radius:6px;font-size:12px;cursor:pointer;background:#fff;color:#374151;transition:all .1s}
+.skill-btn.active{background:#4F46E5;color:#fff;border-color:#4F46E5}
+.skills-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid #E5E7EB}
+.save-btn{padding:9px 20px;background:#4F46E5;color:#fff;border:none;border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;cursor:pointer}
+.save-btn:hover{background:#4338CA}
+.del-btn{padding:9px 16px;background:#FEE2E2;color:#991B1B;border:none;border-radius:8px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;cursor:pointer}
+.del-btn:hover{background:#FECACA}
+.cancel-btn{padding:9px 16px;background:#F3F4F6;color:#374151;border:none;border-radius:8px;font-family:'Open Sans',sans-serif;font-size:13px;cursor:pointer}
+.impact-note{background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:8px 10px;font-size:11px;color:#92400E;margin-top:4px}
+@media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.q-grid{grid-template-columns:repeat(2,1fr)}.field-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-dot"></div>
+  <h1>Corporate Performance Tracker</h1>
+</div>
+<div class="tabs">
+  <div class="tab active tab-label" onclick="switchTab('overview')">Overview</div>
+  <div class="tab tab-label" onclick="switchTab('tasks')">All Tasks</div>
+  <div class="tab tab-label" onclick="switchTab('byquarter')">By Quarter</div>
+  <div class="tab tab-label" onclick="switchTab('brag')">Brag Doc</div>
+</div>
+<div id="page-overview" class="page active"></div>
+<div id="page-tasks" class="page"></div>
+<div id="page-byquarter" class="page"></div>
+<div id="page-brag" class="page"></div>
+<div id="modal-root"></div>
+
+<script>
+const SKILLS_LIST=['Strategy','Communication','Leadership','Analytics','Project Management','Relationship Building','Innovation','Operations'];
+const STATUS_LIST=['Not Started','In Progress','Blocked','Done'];
+const PRIORITY_LIST=['High','Medium','Low'];
+const PIE_LIST=['P','I','E'];
+const QUARTER_LIST=['Q1','Q2','Q3','Q4'];
+const REVIEW_LIST=['Mid-Year','Annual','Both'];
+const VIS_LIST=['Manager only','Director','VP','Exec/C-Suite','Cross-functional'];
+
+const DEFAULT_TASKS=[
+  {id:1,name:'Launch Automated Onboarding Pipeline',objective:'Reduce time-to-productivity for new hires by 40%',status:'Done',priority:'High',pie:'P',quarter:'Q1',review:'Both',requestor:'Sarah Chen (VP Ops)',description:'Built and deployed an automated onboarding workflow integrating HRIS, Slack, and Jira provisioning.',impact:'Reduced onboarding time from 5 days to 18 hours. Saved ~$120K in FY ops costs. Onboarded 47 employees with zero IT tickets.',evidence:'https://internal.wiki/onboarding-v2',feedback:'"This completely changed how we scale headcount." — Sarah Chen, VP Ops',skills:['Project Management','Operations','Innovation'],visibility:'Director'},
+  {id:2,name:'Q2 Executive Roadmap Presentation',objective:'Align C-Suite on 3-year product vision',status:'Done',priority:'High',pie:'I',quarter:'Q2',review:'Mid-Year',requestor:'James Park (CPO)',description:'Designed and delivered a 45-minute exec-level strategy presentation to 12 C-Suite stakeholders.',impact:'Secured $2.4M budget approval for Platform Modernization initiative. Zero follow-up revision requests — first pass acceptance.',evidence:'',feedback:'"Best strategic narrative we\'ve seen from this team in years." — James Park, CPO',skills:['Strategy','Communication','Leadership'],visibility:'Exec/C-Suite'},
+  {id:3,name:'Cross-Functional OKR Alignment Sprint',objective:'Improve cross-team goal coherence by end of H1',status:'Done',priority:'Medium',pie:'E',quarter:'Q2',review:'Mid-Year',requestor:'Priya Nair (Director of Strategy)',description:'Facilitated 3-week sprint across 6 departments to align OKRs and surface dependencies.',impact:'Identified 14 conflicting KPIs across teams. Resolved 11. Reduced duplicated effort estimated at 200+ eng-hours per quarter.',evidence:'https://docs.internal/okr-sprint-results',feedback:'"Priya finally got what she needed from this format." — Marcus Webb, Eng Lead',skills:['Strategy','Leadership','Relationship Building','Communication'],visibility:'VP'},
+  {id:4,name:'Analytics Dashboard v2 Rollout',objective:'Increase data-driven decision making across BU',status:'In Progress',priority:'High',pie:'P',quarter:'Q3',review:'Annual',requestor:'David Torres (Head of Data)',description:'Redesigning the core analytics dashboard with real-time metrics, custom segments, and exec summary views.',impact:'',evidence:'',feedback:'',skills:['Analytics','Innovation','Strategy'],visibility:'Director'},
+  {id:5,name:'Vendor Contract Renegotiation',objective:'Reduce SaaS spend by 15% in FY',status:'Done',priority:'Medium',pie:'P',quarter:'Q1',review:'Annual',requestor:'Finance (Linda Ho)',description:'Led renegotiation of 4 major vendor contracts including Salesforce, Workday, and AWS.',impact:'Secured $387K in annual savings (22% above target). Extended contract terms reduced renewal risk for 18 months.',evidence:'https://finance.internal/vendor-savings-2024',feedback:'"She drove this end-to-end with no hand-holding." — Linda Ho, CFO',skills:['Strategy','Relationship Building','Operations'],visibility:'VP'},
+  {id:6,name:'Engineering Hiring Panel Contribution',objective:'Scale engineering org by 30% in H2',status:'Not Started',priority:'Low',pie:'E',quarter:'Q4',review:'Annual',requestor:'Recruiting (Tom Bell)',description:'Serve as a recurring panel interviewer for senior and staff engineering candidates.',impact:'',evidence:'',feedback:'',skills:['Leadership','Communication'],visibility:'Cross-functional'}
+];
+
+function loadTasks(){
+  try{
+    const s=localStorage.getItem('perf_tasks');
+    return s?JSON.parse(s):DEFAULT_TASKS;
+  }catch(e){return DEFAULT_TASKS;}
+}
+function saveTasks(){
+  try{localStorage.setItem('perf_tasks',JSON.stringify(tasks));}catch(e){}
+}
+
+let tasks=loadTasks();
+let nextId=tasks.reduce((m,t)=>Math.max(m,t.id),0)+1;
+let activeTab='overview';
+let pieChartInstance=null;
+
+function switchTab(t){
+  activeTab=t;
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['overview','tasks','byquarter','brag'][i]===t);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+t).classList.add('active');
+  render();
+}
+
+function badgeStatus(s){
+  const map={'Done':'b-done','In Progress':'b-progress','Blocked':'b-blocked','Not Started':'b-notstarted'};
+  return `<span class="badge ${map[s]||'b-notstarted'}">${s}</span>`;
+}
+function badgePriority(p){
+  const map={'High':'b-high','Medium':'b-medium','Low':'b-low'};
+  return `<span class="badge ${map[p]||'b-low'}">${p}</span>`;
+}
+function badgePIE(p){
+  const map={'P':'b-p','I':'b-i','E':'b-e'};
+  const label={'P':'Performance','I':'Image','E':'Exposure'};
+  return `<span class="badge ${map[p]||'b-p'}">${label[p]||p}</span>`;
+}
+
+function taskRow(t){
+  return `<tr onclick="openEdit(${t.id})">
+    <td><input type="checkbox" ${t.status==='Done'?'checked':''} onclick="event.stopPropagation();toggleDone(${t.id},this)"></td>
+    <td><div style="font-weight:600;color:#111">${esc(t.name)}</div><div style="font-size:11px;color:#9CA3AF;margin-top:2px">${esc(t.objective)}</div></td>
+    <td>${badgeStatus(t.status)}</td>
+    <td>${badgePriority(t.priority)}</td>
+    <td>${badgePIE(t.pie)}</td>
+    <td><span style="font-size:13px;color:#374151">${t.quarter}</span></td>
+    <td><span style="font-size:11px;color:#6B7280">${t.visibility}</span></td>
+  </tr>`;
+}
+
+function tableHTML(filteredTasks){
+  return `<table>
+    <thead><tr>
+      <th style="width:36px"></th>
+      <th>Task / Objective</th>
+      <th>Status</th>
+      <th>Priority</th>
+      <th>PIE</th>
+      <th>Quarter</th>
+      <th>Visibility</th>
+    </tr></thead>
+    <tbody>${filteredTasks.map(taskRow).join('')}</tbody>
+  </table>`;
+}
+
+function renderOverview(){
+  const done=tasks.filter(t=>t.status==='Done');
+  const inprog=tasks.filter(t=>t.status==='In Progress');
+  const highDone=done.filter(t=>t.priority==='High');
+  const withImpact=done.filter(t=>t.impact&&t.impact.trim());
+  const missingImpact=done.filter(t=>!t.impact||!t.impact.trim());
+  const pCount=tasks.filter(t=>t.pie==='P').length;
+  const iCount=tasks.filter(t=>t.pie==='I').length;
+  const eCount=tasks.filter(t=>t.pie==='E').length;
+  const total=tasks.length||1;
+  const qData=QUARTER_LIST.map(q=>{
+    const qt=tasks.filter(t=>t.quarter===q);
+    const qd=qt.filter(t=>t.status==='Done');
+    return{q,total:qt.length,done:qd.length};
+  });
+
+  document.getElementById('page-overview').innerHTML=`
+    ${missingImpact.length?`<div class="alert-banner"><span class="alert-dot"></span><strong>${missingImpact.length} completed task${missingImpact.length>1?'s':''} missing an impact statement.</strong> Add metrics to strengthen your review narrative. <span style="color:#4F46E5;cursor:pointer;margin-left:6px;text-decoration:underline" onclick="switchTab('tasks')">Review now →</span></div>`:''}
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num">${tasks.length}</div><div class="stat-label">Total Tasks</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#16A34A">${done.length}</div><div class="stat-label">Completed</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#2563EB">${inprog.length}</div><div class="stat-label">In Progress</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#DC2626">${highDone.length}</div><div class="stat-label">High Priority Done</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#0EA5E9">${withImpact.length}</div><div class="stat-label">With Proof of Impact</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card card-red">
+        <h3 style="font-family:Montserrat,sans-serif;font-size:15px;margin-bottom:14px;color:#1F2937">PIE Framework Breakdown</h3>
+        <div class="pie-section">
+          <div class="pie-label"><span>Performance (P)</span><span style="font-weight:600;color:#5B21B6">${pCount} tasks (${Math.round(pCount/total*100)}%)</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(pCount/total*100)}%;background:#7C3AED"></div></div>
+          <div class="pie-label"><span>Image (I)</span><span style="font-weight:600;color:#0369A1">${iCount} tasks (${Math.round(iCount/total*100)}%)</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(iCount/total*100)}%;background:#0EA5E9"></div></div>
+          <div class="pie-label"><span>Exposure (E)</span><span style="font-weight:600;color:#166534">${eCount} tasks (${Math.round(eCount/total*100)}%)</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(eCount/total*100)}%;background:#16A34A"></div></div>
+          <div class="coaching"><strong>Coaching note:</strong> The ideal PIE balance is roughly 60% Performance, 30% Image, 10% Exposure. High performers often under-invest in Image and Exposure — visibility drives promotion decisions as much as output does.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-family:Montserrat,sans-serif;font-size:15px;margin-bottom:6px;color:#1F2937">Quarterly Completion</h3>
+        <div class="q-grid">
+          ${qData.map(d=>`<div class="q-card">
+            <div class="q-num">${d.done}/${d.total}</div>
+            <div class="q-label">${d.q} Done</div>
+            <div class="q-bar-bg"><div class="q-bar-fill" style="width:${d.total?Math.round(d.done/d.total*100):0}%"></div></div>
+            <div style="font-size:10px;color:#6B7280;margin-top:4px">${d.total?Math.round(d.done/d.total*100):0}%</div>
+          </div>`).join('')}
+        </div>
+        <div style="margin-top:16px;position:relative;height:180px"><canvas id="overviewChart"></canvas></div>
+      </div>
+    </div>`;
+
+  setTimeout(()=>{
+    const ctx=document.getElementById('overviewChart');
+    if(!ctx)return;
+    if(pieChartInstance)pieChartInstance.destroy();
+    pieChartInstance=new Chart(ctx,{
+      type:'doughnut',
+      data:{labels:['Performance','Image','Exposure'],datasets:[{data:[pCount,iCount,eCount],backgroundColor:['#7C3AED','#0EA5E9','#16A34A'],borderWidth:2,borderColor:'#fff'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
+    });
+  },50);
+}
+
+function renderTasks(){
+  const el=document.getElementById('page-tasks');
+  const statusF=el.querySelector('#filter-status')?.value||'All';
+  const pieF=el.querySelector('#filter-pie')?.value||'All';
+  const qF=el.querySelector('#filter-quarter')?.value||'All';
+  let filtered=tasks.filter(t=>(statusF==='All'||t.status===statusF)&&(pieF==='All'||t.pie===pieF)&&(qF==='All'||t.quarter===qF));
+  el.innerHTML=`<div class="filters">
+    <select id="filter-status" onchange="renderTasks()">
+      <option value="All">All Statuses</option>
+      ${STATUS_LIST.map(s=>`<option ${statusF===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+    <select id="filter-pie" onchange="renderTasks()">
+      <option value="All">All PIE</option>
+      ${PIE_LIST.map(p=>`<option ${pieF===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    <select id="filter-quarter" onchange="renderTasks()">
+      <option value="All">All Quarters</option>
+      ${QUARTER_LIST.map(q=>`<option ${qF===q?'selected':''}>${q}</option>`).join('')}
+    </select>
+    <button class="add-btn" onclick="openAdd()">+ Add Task</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    ${tableHTML(filtered)}
+    ${filtered.length===0?'<div style="text-align:center;padding:32px;color:#9CA3AF">No tasks match current filters.</div>':''}
+  </div>`;
+}
+
+function renderByQuarter(){
+  document.getElementById('page-byquarter').innerHTML=QUARTER_LIST.map(q=>{
+    const qt=tasks.filter(t=>t.quarter===q);
+    return `<div class="section-head">${q} — ${qt.length} task${qt.length!==1?'s':''}</div>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">
+      ${qt.length?tableHTML(qt):`<div style="text-align:center;padding:20px;color:#9CA3AF">No tasks for ${q}.</div>`}
+    </div>`;
+  }).join('');
+}
+
+function renderBrag(){
+  const done=tasks.filter(t=>t.status==='Done');
+  if(!done.length){document.getElementById('page-brag').innerHTML='<div style="text-align:center;padding:40px;color:#9CA3AF">No completed tasks yet.</div>';return;}
+  document.getElementById('page-brag').innerHTML=done.map(t=>{
+    const missing=!t.impact||!t.impact.trim();
+    return `<div class="brag-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div class="brag-title">${esc(t.name)}</div>
+        <div style="display:flex;gap:6px">${badgePriority(t.priority)}${badgePIE(t.pie)}</div>
+      </div>
+      <div style="font-size:12px;color:#64748B;margin-top:2px">${esc(t.objective)}</div>
+      ${missing?`<div class="brag-warn" onclick="openEdit(${t.id})">⚠ Missing impact statement — click to add metrics. Without numbers, this won't land in a review.</div>`:`<div class="brag-impact"><strong style="font-size:11px;color:#818CF8;text-transform:uppercase;letter-spacing:.04em">Quantifiable Impact</strong><div style="margin-top:4px">${esc(t.impact)}</div></div>`}
+      ${t.feedback?`<div class="brag-quote">${esc(t.feedback)}</div>`:''}
+      <div class="brag-tags">
+        <span class="brag-tag">📅 ${t.review}</span>
+        <span class="brag-tag">🎯 ${t.quarter}</span>
+        <span class="brag-tag">👁 ${t.visibility}</span>
+        ${t.requestor?`<span class="brag-tag">✅ ${esc(t.requestor)}</span>`:''}
+        ${(t.skills||[]).map(s=>`<span class="brag-tag" style="background:#1E3A5F;color:#93C5FD">${s}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function render(){
+  if(activeTab==='overview')renderOverview();
+  else if(activeTab==='tasks')renderTasks();
+  else if(activeTab==='byquarter')renderByQuarter();
+  else if(activeTab==='brag')renderBrag();
+}
+
+function toggleDone(id,cb){
+  const t=tasks.find(t=>t.id===id);
+  if(t){t.status=cb.checked?'Done':'In Progress';saveTasks();}
+  render();
+}
+
+function openAdd(){showModal(null);}
+function openEdit(id){const t=tasks.find(t=>t.id===id);if(t)showModal(t);}
+
+function showModal(task){
+  const isEdit=!!task;
+  const t=task||{id:null,name:'',objective:'',status:'Not Started',priority:'Medium',pie:'P',quarter:'Q1',review:'Mid-Year',requestor:'',description:'',impact:'',evidence:'',feedback:'',skills:[],visibility:'Manager only'};
+  document.getElementById('modal-root').innerHTML=`<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2>${isEdit?'Edit Task':'Add New Task'}</h2>
+      <div class="modal-section">
+        <div class="modal-section-label">Task Identity</div>
+        <div class="field-row full"><div><label class="field-label">Task Name</label><input type="text" id="f-name" value="${esc(t.name)}" placeholder="Describe what you did..."></div></div>
+        <div class="field-row full"><div><label class="field-label">Company Objective</label><input type="text" id="f-obj" value="${esc(t.objective)}" placeholder="e.g. Reduce operational costs by 20%"></div></div>
+        <div class="field-row">
+          <div><label class="field-label">Requestor (who can validate this?)</label><input type="text" id="f-req" value="${esc(t.requestor)}" placeholder="Name + Title"></div>
+          <div><label class="field-label">Review Period</label><select class="modal-select" id="f-review">${REVIEW_LIST.map(r=>`<option ${t.review===r?'selected':''}>${r}</option>`).join('')}</select></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Classification</div>
+        <div class="field-row">
+          <div><label class="field-label">Status</label><select class="modal-select" id="f-status">${STATUS_LIST.map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+          <div><label class="field-label">Priority</label><select class="modal-select" id="f-priority">${PRIORITY_LIST.map(p=>`<option ${t.priority===p?'selected':''}>${p}</option>`).join('')}</select></div>
+        </div>
+        <div class="field-row">
+          <div><label class="field-label">PIE Category</label><select class="modal-select" id="f-pie">${PIE_LIST.map(p=>`<option ${t.pie===p?'selected':''}>${p} — ${{P:'Performance',I:'Image',E:'Exposure'}[p]}</option>`).join('')}</select></div>
+          <div><label class="field-label">Quarter</label><select class="modal-select" id="f-quarter">${QUARTER_LIST.map(q=>`<option ${t.quarter===q?'selected':''}>${q}</option>`).join('')}</select></div>
+        </div>
+        <div class="field-row full"><div><label class="field-label">Visibility Level</label><select class="modal-select" id="f-vis">${VIS_LIST.map(v=>`<option ${t.visibility===v?'selected':''}>${v}</option>`).join('')}</select></div></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Work Detail</div>
+        <div class="field-row full"><div><label class="field-label">Description</label><textarea id="f-desc" placeholder="What did you do and how?">${esc(t.description)}</textarea></div></div>
+        <div class="field-row full">
+          <div>
+            <label class="field-label" style="color:#B45309;font-weight:600">★ Quantifiable Impact — MOST IMPORTANT FIELD</label>
+            <textarea id="f-impact" placeholder="Use real numbers: saved $X, reduced time by Y%, increased Z by N units..." style="border-color:#FCD34D">${esc(t.impact)}</textarea>
+            <div class="impact-note">Push yourself to use specific numbers. "Improved efficiency" is weak. "Reduced processing time from 4 hours to 45 minutes for 200+ weekly transactions" is strong.</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div><label class="field-label">Evidence Link (optional)</label><input type="url" id="f-evidence" value="${esc(t.evidence)}" placeholder="https://..."></div>
+          <div><label class="field-label">Feedback Received (exact quote + name)</label><input type="text" id="f-feedback" value="${esc(t.feedback)}" placeholder='"Great work" — Manager Name'></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-label">Skills Demonstrated</div>
+        <div class="skills-wrap" id="skills-wrap">
+          ${SKILLS_LIST.map(s=>`<button class="skill-btn ${(t.skills||[]).includes(s)?'active':''}" onclick="this.classList.toggle('active')">${s}</button>`).join('')}
+        </div>
+      </div>
+      <div class="modal-actions">
+        <div>${isEdit?`<button class="del-btn" onclick="deleteTask(${t.id})">Delete</button>`:''}</div>
+        <div style="display:flex;gap:8px">
+          <button class="cancel-btn" onclick="document.getElementById('modal-root').innerHTML=''">Cancel</button>
+          <button class="save-btn" onclick="saveTask(${t.id||'null'})">${isEdit?'Save Changes':'Add Task'}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function closeModal(e){if(e.target.id==='modal-overlay')document.getElementById('modal-root').innerHTML='';}
+
+function saveTask(id){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('Task name is required.');return;}
+  const skills=[...document.querySelectorAll('#skills-wrap .skill-btn.active')].map(b=>b.textContent);
+  const data={name,objective:document.getElementById('f-obj').value.trim(),status:document.getElementById('f-status').value,priority:document.getElementById('f-priority').value,pie:document.getElementById('f-pie').value.split(' ')[0],quarter:document.getElementById('f-quarter').value,review:document.getElementById('f-review').value,requestor:document.getElementById('f-req').value.trim(),description:document.getElementById('f-desc').value.trim(),impact:document.getElementById('f-impact').value.trim(),evidence:document.getElementById('f-evidence').value.trim(),feedback:document.getElementById('f-feedback').value.trim(),visibility:document.getElementById('f-vis').value,skills};
+  if(id===null){tasks.push({id:nextId++,...data});}
+  else{const i=tasks.findIndex(t=>t.id===id);if(i>-1)tasks[i]={...tasks[i],...data};}
+  saveTasks();
+  document.getElementById('modal-root').innerHTML='';
+  render();
+}
+
+function deleteTask(id){
+  if(!confirm('Delete this task?'))return;
+  tasks=tasks.filter(t=>t.id!==id);
+  saveTasks();
+  document.getElementById('modal-root').innerHTML='';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
